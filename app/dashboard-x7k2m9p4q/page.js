@@ -34,6 +34,25 @@ export default function DashboardPage() {
     loadResults();
   }, [loadResults]);
 
+  const handleDelete = useCallback(async (id) => {
+    const previous = results;
+    setResults((current) => current.filter((r) => r._id !== id));
+
+    try {
+      const res = await fetch(`/api/results?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Suppression échouée");
+      }
+    } catch (err) {
+      setResults(previous);
+      alert("Erreur lors de la suppression : " + err.message);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [results]);
+
   return (
     <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-8 px-4 py-10 sm:px-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -71,7 +90,7 @@ export default function DashboardPage() {
           <ScoreSummary results={results} />
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {results.map((result) => (
-              <ResultCard key={result._id} result={result} />
+              <ResultCard key={result._id} result={result} onDelete={handleDelete} />
             ))}
           </div>
         </>

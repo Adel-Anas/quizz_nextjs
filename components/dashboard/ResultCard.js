@@ -26,18 +26,35 @@ function formatDate(value) {
   });
 }
 
-export default function ResultCard({ result }) {
+export default function ResultCard({ result, onDelete }) {
   const percentage = result.percentage ?? 0;
   const label = getScoreLabel(percentage);
   const correctCount = (result.answers || []).filter((a) => a.isCorrect).length;
   const totalCount = (result.answers || []).length;
 
+  function handleDeleteClick(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (confirm(`Supprimer le résultat de ${result.name} ?`)) {
+      onDelete?.(result._id);
+    }
+  }
+
   return (
     <Link
       href={`/dashboard-x7k2m9p4q/${result._id}`}
-      className="flex flex-col gap-4 rounded-2xl border border-slate-800 bg-card/60 p-5 transition-colors hover:border-accent/60 hover:bg-slate-800/60"
+      className="relative flex flex-col gap-4 rounded-2xl border border-slate-800 bg-card/60 p-5 transition-colors hover:border-accent/60 hover:bg-slate-800/60"
     >
-      <div className="flex items-start justify-between gap-2">
+      <button
+        type="button"
+        onClick={handleDeleteClick}
+        aria-label={`Supprimer le résultat de ${result.name}`}
+        className="absolute right-4 top-4 rounded-full p-1.5 text-slate-500 hover:bg-danger/15 hover:text-danger"
+      >
+        🗑
+      </button>
+
+      <div className="flex items-start justify-between gap-2 pr-8">
         <div>
           <p className="text-lg font-bold text-white">{result.name}</p>
           <p className="text-xs text-slate-500">{formatDate(result.completedAt)}</p>

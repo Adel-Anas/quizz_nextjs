@@ -54,6 +54,23 @@ export default function ResultDetailPage() {
     URL.revokeObjectURL(url);
   }
 
+  async function handleDelete() {
+    if (!confirm(`Supprimer le résultat de ${result.name} ?`)) return;
+
+    try {
+      const res = await fetch(`/api/results?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Suppression échouée");
+      }
+      router.push("/dashboard-x7k2m9p4q");
+    } catch (err) {
+      alert("Erreur lors de la suppression : " + err.message);
+    }
+  }
+
   if (status === "loading") {
     return (
       <main className="flex flex-1 items-center justify-center">
@@ -113,6 +130,13 @@ export default function ResultDetailPage() {
             className="rounded-full bg-accent px-5 py-2.5 text-sm font-bold text-slate-900 hover:opacity-90"
           >
             ⬇ Télécharger
+          </button>
+          <button
+            type="button"
+            onClick={handleDelete}
+            className="rounded-full border border-danger/50 px-5 py-2.5 text-sm font-bold text-danger hover:bg-danger/10"
+          >
+            🗑 Supprimer
           </button>
         </div>
       </div>

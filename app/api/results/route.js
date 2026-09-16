@@ -50,3 +50,30 @@ export async function GET(request) {
     );
   }
 }
+
+export async function DELETE(request) {
+  try {
+    await connectDB();
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ error: "Paramètre id requis" }, { status: 400 });
+    }
+
+    const deleted = await QuizResult.findByIdAndDelete(id);
+
+    if (!deleted) {
+      return NextResponse.json({ error: "Résultat introuvable" }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("❌ Erreur delete result:", error);
+    return NextResponse.json(
+      { error: "Erreur serveur : " + error.message },
+      { status: 500 }
+    );
+  }
+}
