@@ -6,6 +6,7 @@ const AnswerSchema = new mongoose.Schema({
   answer: { type: mongoose.Schema.Types.Mixed },
   isCorrect: { type: Boolean, required: true },
   points: { type: Number, required: true },
+  constraintDetails: { type: mongoose.Schema.Types.Mixed },
 });
 
 const QuizResultSchema = new mongoose.Schema(

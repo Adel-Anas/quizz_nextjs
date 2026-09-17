@@ -44,6 +44,12 @@ export default function QuestionDragDrop({ question, onAnswer }) {
         <p className="text-sm text-slate-400">{question.instruction}</p>
       )}
 
+      <p className="text-sm italic text-slate-500">
+        {question.id === "dragdrop-1"
+          ? "✅ Ce qui compte : chaque fichier doit être placé dans le bon dossier parent, dans le bon niveau d'indentation. L'ordre entre dossiers frères est libre."
+          : "⚠️ L'ordre exact est important — c'est une séquence chronologique."}
+      </p>
+
       <DragDropContext onDragEnd={handleDragEnd}>
         <Droppable droppableId="dragdrop-tree">
           {(provided) => (

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import QuizResult from "@/models/QuizResult";
 import { questions } from "@/lib/questions";
+import { validateDragDropAnswer } from "@/lib/scoring";
 
 function calculateScore(userAnswers) {
   let totalScore = 0;
@@ -11,29 +12,11 @@ function calculateScore(userAnswers) {
     const question = questions.find((q) => q.id === userAnswer.questionId);
     if (!question) return { ...userAnswer, isCorrect: false, points: 0 };
 
-    let isCorrect = false;
-
     if (question.type === "dragdrop") {
-      // Score partiel pour le drag & drop : 1 point par item bien placé
-      const correct = question.correctOrder;
-      const given = userAnswer.answer || [];
-      let correctPositions = 0;
-      given.forEach((itemId, index) => {
-        if (correct[index] === itemId) correctPositions++;
-      });
-      const ratio = correct.length > 0 ? correctPositions / correct.length : 0;
-      const points = Math.round(question.points * ratio);
-      totalScore += points;
-      return {
-        questionId: userAnswer.questionId,
-        questionType: question.type,
-        answer: userAnswer.answer,
-        isCorrect: ratio === 1,
-        points,
-      };
-    } else {
-      isCorrect = userAnswer.answer === question.correctAnswer;
-      const points = isCorrect ? question.points : 0;
+      const { isCorrect, points, constraintDetails } = validateDragDropAnswer(
+        question,
+        userAnswer.answer || []
+      );
       totalScore += points;
       return {
         questionId: userAnswer.questionId,
@@ -41,8 +24,20 @@ function calculateScore(userAnswers) {
         answer: userAnswer.answer,
         isCorrect,
         points,
+        ...(constraintDetails ? { constraintDetails } : {}),
       };
     }
+
+    const isCorrect = userAnswer.answer === question.correctAnswer;
+    const points = isCorrect ? question.points : 0;
+    totalScore += points;
+    return {
+      questionId: userAnswer.questionId,
+      questionType: question.type,
+      answer: userAnswer.answer,
+      isCorrect,
+      points,
+    };
   });
 
   const percentage = Math.round((totalScore / maxScore) * 100);

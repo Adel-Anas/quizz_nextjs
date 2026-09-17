@@ -44,7 +44,43 @@ function ChoiceOptions({ question, userAnswer }) {
   );
 }
 
-function DragDropAnswer({ question, userAnswer }) {
+function DragDropTreeAnswer({ question, userAnswer, constraintDetails }) {
+  const items = new Map(question.items.map((item) => [item.id, item.label]));
+  const given = Array.isArray(userAnswer) ? userAnswer : [];
+  const failedIds = new Set((constraintDetails || []).filter((c) => !c.passed).map((c) => c.itemId));
+  const passedCount = (constraintDetails || []).filter((c) => c.passed).length;
+  const totalCount = constraintDetails?.length ?? 0;
+
+  return (
+    <div className="flex flex-col gap-3">
+      <p className="text-sm font-semibold text-slate-300">
+        {passedCount} / {totalCount} contraintes respectées
+      </p>
+      <ol className="flex flex-col gap-1.5">
+        {given.map((id, i) => {
+          const ok = !failedIds.has(id);
+          return (
+            <li
+              key={`${id}-${i}`}
+              className={`rounded-lg border px-3 py-1.5 text-sm ${
+                ok ? "border-accent/50 bg-accent/10 text-slate-100" : "border-danger/50 bg-danger/10 text-slate-100"
+              }`}
+            >
+              {ok ? "✓" : "✗"} {items.get(id) || id}
+            </li>
+          );
+        })}
+      </ol>
+      {failedIds.size > 0 && (
+        <p className="rounded-lg bg-danger/10 p-3 text-sm text-danger">
+          Mal placés : {[...failedIds].map((id) => items.get(id) || id).join(", ")}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function DragDropOrderAnswer({ question, userAnswer }) {
   const items = new Map(question.items.map((item) => [item.id, item.label]));
   const given = Array.isArray(userAnswer) ? userAnswer : [];
   const correct = question.correctOrder || [];
@@ -83,6 +119,15 @@ function DragDropAnswer({ question, userAnswer }) {
   );
 }
 
+function DragDropAnswer({ question, userAnswer, constraintDetails }) {
+  if (question.id === "dragdrop-1") {
+    return (
+      <DragDropTreeAnswer question={question} userAnswer={userAnswer} constraintDetails={constraintDetails} />
+    );
+  }
+  return <DragDropOrderAnswer question={question} userAnswer={userAnswer} />;
+}
+
 export default function AnswerDetail({ index, question, answer }) {
   if (!question) return null;
 
@@ -107,7 +152,7 @@ export default function AnswerDetail({ index, question, answer }) {
       {question.codeWithBug && <CodeBlock code={question.codeWithBug} />}
 
       {question.type === "dragdrop" ? (
-        <DragDropAnswer question={question} userAnswer={answer.answer} />
+        <DragDropAnswer question={question} userAnswer={answer.answer} constraintDetails={answer.constraintDetails} />
       ) : (
         <ChoiceOptions question={question} userAnswer={answer.answer} />
       )}
